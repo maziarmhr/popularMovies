@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Movies</string>
+    <string name="poster_description">Movie Poster</string>
+    <string name="error_message">An error has occurred. Please try again…</string>
+    <string name="action_popular">Most Popular</string>
+    <string name="action_rating">Highest Rated</string>
+    <string name="movie_release_date">Released: %1s</string>
+    <string name="movie_rating">Rating: %1.1f</string>
+</resources>
