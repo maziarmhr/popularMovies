@@ -15,6 +15,7 @@
  */
 package com.example.android.popularmovies.utilities;
 
+import android.content.Intent;
 import android.net.Uri;
 import com.example.android.popularmovies.BuildConfig;
 import android.util.Log;
@@ -39,6 +40,8 @@ public final class NetworkUtils {
             "http://image.tmdb.org/t/p/";
     public static final String POPULAR = "popular";
     public static final String TOP_RATED = "top_rated";
+    public static final String TRAILERS_PATH = "videos";
+    public static final String REVIEWS_PATH = "reviews";
 
     public enum PosterSizes {
         XXS("w92"),
@@ -91,6 +94,32 @@ public final class NetworkUtils {
         }
 
         Log.v(TAG, "Built URI " + url);
+
+        return url;
+    }
+
+    /**
+     * Builds the URL used to get a movie trailers or reviews.
+     *
+     * @param id The id of movie to query the trailers for
+     * @param itemType type of item to query for
+     * @return The URL to use to query the movies server.
+     */
+    public static URL buildMovieItemUrl(long id, String itemType) {
+        Uri builtUri = Uri.parse(MOVIES_BASE_URL).buildUpon()
+                .appendPath(Long.toString(id))
+                .appendPath(itemType)
+                .appendQueryParameter(API_KEY_PARAM, api_key)
+                .build();
+
+        URL url = null;
+        try {
+            url = new URL(builtUri.toString());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        Log.v(TAG, itemType + " Built URI" + url);
 
         return url;
     }

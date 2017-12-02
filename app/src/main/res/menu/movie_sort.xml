@@ -10,4 +10,8 @@
         android:id="@+id/action_rating"
         android:title="@string/action_rating"
         app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_favorites"
+        android:title="@string/action_favorites"
+        app:showAsAction="ifRoom" />
 </menu>

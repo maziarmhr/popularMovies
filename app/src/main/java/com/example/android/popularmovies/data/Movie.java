@@ -1,4 +1,4 @@
-package com.example.android.popularmovies;
+package com.example.android.popularmovies.data;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -11,6 +11,7 @@ import java.util.Date;
  */
 
 public class Movie implements Parcelable {
+
     private final long mId;
     private final String mTitle;
     private final String mOverview;
@@ -80,5 +81,9 @@ public class Movie implements Parcelable {
 
     public String getPoster() {
         return mPoster;
+    }
+
+    public long getId() {
+        return mId;
     }
 }
