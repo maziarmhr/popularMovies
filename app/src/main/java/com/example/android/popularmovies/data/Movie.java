@@ -75,7 +75,7 @@ public class Movie implements Parcelable {
     }
 
     public String getReleaseDate() {
-        SimpleDateFormat df = new SimpleDateFormat("MM-dd-yyyy");
+        SimpleDateFormat df = new SimpleDateFormat("yyyy");
         return df.format(mReleaseDate);
     }
 

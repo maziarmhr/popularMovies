@@ -182,7 +182,7 @@ public class DetailActivity extends AppCompatActivity implements TrailersAdapter
                 mBinding.tvDetailTitle.setText(mMovie.getTitle());
                 mBinding.tvDetailOverview.setText(mMovie.getOverview());
                 mBinding.tvDetailRating.setText(String.format(getString(R.string.movie_rating), mMovie.getRating()));
-                mBinding.tvDetailRelease.setText(String.format(getString(R.string.movie_release_date),mMovie.getReleaseDate()));
+                mBinding.tvDetailRelease.setText(mMovie.getReleaseDate());
                 mTrailersAdapter = new TrailersAdapter(null);
                 mBinding.rvTrailers.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
                 mBinding.rvTrailers.setAdapter(mTrailersAdapter);
