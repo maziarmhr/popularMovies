@@ -17,7 +17,8 @@ import android.support.annotation.Nullable;
 
 public class FavoriteMoviesProvider extends ContentProvider {
 
-    public static final int CODE_MOVIE = 100;
+    public static final int MOVIES = 100;
+    public static final int MOVIE_WITH_ID = 101;
 
     private static final UriMatcher sUriMatcher = buildUriMatcher();
     private MoviesDbHelper mOpenHelper;
@@ -28,7 +29,14 @@ public class FavoriteMoviesProvider extends ContentProvider {
         final String authority = FavoriteMoviesContract.CONTENT_AUTHORITY;
 
         /* This URI is content://com.example.android.popularmovies/movie/ */
-        matcher.addURI(authority, FavoriteMoviesContract.PATH_FAVORITE_MOVIES, CODE_MOVIE);
+        matcher.addURI(authority, FavoriteMoviesContract.PATH_FAVORITE_MOVIES, MOVIES);
+
+        /*
+         * This URI would look something like content://com.example.android.popularmovies/movie/1472214172
+         * The "/#" signifies to the UriMatcher that if PATH_FAVORITE_MOVIES is followed by ANY number,
+         * that it should return the MOVIE_WITH_ID code
+         */
+        matcher.addURI(authority, FavoriteMoviesContract.PATH_FAVORITE_MOVIES + "/#", MOVIE_WITH_ID);
 
         return matcher;
     }
@@ -46,7 +54,22 @@ public class FavoriteMoviesProvider extends ContentProvider {
 
         switch (sUriMatcher.match(uri)) {
 
-            case CODE_MOVIE: {
+            case MOVIE_WITH_ID: {
+                String movieId = uri.getLastPathSegment();
+                String[] selectionArguments = new String[]{movieId};
+
+                cursor = mOpenHelper.getReadableDatabase().query(
+                        FavoriteMoviesContract.MovieEntry.TABLE_NAME,
+                        projection,
+                        FavoriteMoviesContract.MovieEntry._ID + " = ? ",
+                        selectionArguments,
+                        null,
+                        null,
+                        sortOrder);
+
+                break;
+            }
+            case MOVIES: {
                 cursor = mOpenHelper.getReadableDatabase().query(
                         FavoriteMoviesContract.MovieEntry.TABLE_NAME,
                         projection,
@@ -82,7 +105,7 @@ public class FavoriteMoviesProvider extends ContentProvider {
 
         switch (sUriMatcher.match(uri)) {
 
-            case CODE_MOVIE:
+            case MOVIES:
                 long _id = db.insert(FavoriteMoviesContract.MovieEntry.TABLE_NAME, null, contentValues);
                 if (_id > 0) {
                     returnUri = ContentUris.withAppendedId(FavoriteMoviesContract.MovieEntry.CONTENT_URI, _id);
@@ -101,7 +124,7 @@ public class FavoriteMoviesProvider extends ContentProvider {
     @Override
     public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
         int numRowsDeleted;
-
+        final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         /*
          * If we pass null as the selection to SQLiteDatabase#delete, our entire table will be
          * deleted. However, if we do pass null and delete all of the rows in the table, we won't
@@ -113,12 +136,16 @@ public class FavoriteMoviesProvider extends ContentProvider {
 
         switch (sUriMatcher.match(uri)) {
 
-            case CODE_MOVIE:
-                numRowsDeleted = mOpenHelper.getWritableDatabase().delete(
+            case MOVIES:
+                numRowsDeleted = db.delete(
                         FavoriteMoviesContract.MovieEntry.TABLE_NAME,
                         selection,
                         selectionArgs);
 
+                break;
+            case MOVIE_WITH_ID:
+                String id = uri.getPathSegments().get(1);
+                numRowsDeleted = db.delete(FavoriteMoviesContract.MovieEntry.TABLE_NAME, "_id=?", new String[]{id});
                 break;
 
             default:

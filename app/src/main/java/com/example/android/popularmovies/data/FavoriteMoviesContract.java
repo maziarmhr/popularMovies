@@ -48,5 +48,9 @@ public class FavoriteMoviesContract {
         public static final String COLUMN_OVERVIEW = "synopsis";
         public static final String COLUMN_RATING = "rating";
         public static final String COLUMN_RELEASE = "release_date";
+
+        public static Uri buildMovieWithIdUri(long id) {
+            return CONTENT_URI.buildUpon().appendPath(Long.toString(id)).build();
+        }
     }
 }

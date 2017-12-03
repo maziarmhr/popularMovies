@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.databinding.DataBindingUtil;
 import android.net.Uri;
+import android.os.Handler;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
@@ -33,6 +34,7 @@ public class DetailActivity extends AppCompatActivity implements TrailersAdapter
     TrailersAdapter mTrailersAdapter;
     ReviewsAdapter mReviewsAdapter;
     private Movie mMovie;
+    private boolean isMovieFavorite;
 
     private static final int TRAILER_LOADER_ID = 33;
     private static final int REVIEWS_LOADER_ID = 44;
@@ -169,6 +171,13 @@ public class DetailActivity extends AppCompatActivity implements TrailersAdapter
             if (intent.hasExtra("Movie")) {
                 Bundle bundle = getIntent().getExtras();
                 mMovie = bundle.getParcelable("Movie");
+                new Handler().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateFavorite(isFavorite(mMovie.getId()));
+                    }
+                });
+
                 Picasso.with(this).load(NetworkUtils.buildPosterUri(mMovie.getPoster(), NetworkUtils.PosterSizes.L)).into(mBinding.ivDetailPoster);
                 mBinding.tvDetailTitle.setText(mMovie.getTitle());
                 mBinding.tvDetailOverview.setText(mMovie.getOverview());
@@ -182,37 +191,60 @@ public class DetailActivity extends AppCompatActivity implements TrailersAdapter
                 mBinding.rvReviews.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
                 mBinding.rvReviews.setAdapter(mReviewsAdapter);
 
-                Bundle queryBundle = new Bundle();
+                Bundle trailerQueryBundle = new Bundle();
 
-                queryBundle.putString(SEARCH_REQUEST_TYPE, NetworkUtils.TRAILERS_PATH);
-                queryBundle.putLong(SEARCH_MOVIE_ID, mMovie.getId());
+                trailerQueryBundle.putString(SEARCH_REQUEST_TYPE, NetworkUtils.TRAILERS_PATH);
+                trailerQueryBundle.putLong(SEARCH_MOVIE_ID, mMovie.getId());
                 LoaderManager loaderManager = getSupportLoaderManager();
-                loaderManager.restartLoader(TRAILER_LOADER_ID, queryBundle, new TrailerLoaderListener());
+                loaderManager.restartLoader(TRAILER_LOADER_ID, trailerQueryBundle, new TrailerLoaderListener());
 
-                queryBundle.putString(SEARCH_REQUEST_TYPE, NetworkUtils.REVIEWS_PATH);
-                loaderManager.restartLoader(REVIEWS_LOADER_ID, queryBundle, new ReviewLoaderListener());
+                Bundle reviewQueryBundle = new Bundle();
+                reviewQueryBundle.putString(SEARCH_REQUEST_TYPE, NetworkUtils.REVIEWS_PATH);
+                reviewQueryBundle.putLong(SEARCH_MOVIE_ID, mMovie.getId());
+                loaderManager.restartLoader(REVIEWS_LOADER_ID, reviewQueryBundle, new ReviewLoaderListener());
             }
         }
     }
 
     public void onClickFavorite(View view) {
-        //TODO Implement delete operation too
-        ContentValues movieContentValues = new ContentValues();
-        //TODO how unique id is enforced? is duplicate id possible?
-        movieContentValues.put(FavoriteMoviesContract.MovieEntry._ID, mMovie.getId());
-        movieContentValues.put(FavoriteMoviesContract.MovieEntry.COLUMN_TITLE, mMovie.getTitle());
-        movieContentValues.put(FavoriteMoviesContract.MovieEntry.COLUMN_OVERVIEW, mMovie.getOverview());
-        movieContentValues.put(FavoriteMoviesContract.MovieEntry.COLUMN_RATING, mMovie.getRating());
-        movieContentValues.put(FavoriteMoviesContract.MovieEntry.COLUMN_RELEASE, mMovie.getReleaseDate());
-        movieContentValues.put(FavoriteMoviesContract.MovieEntry.COLUMN_POSTER, mMovie.getPoster());
-        //TODO Check what needs to be done with URI here
-        Uri uri = getContentResolver().insert(FavoriteMoviesContract.MovieEntry.CONTENT_URI, movieContentValues);
-        //TODO Pull poster if internet connected
+        final boolean isFavorite = isMovieFavorite;
+        updateFavorite(!isMovieFavorite);
+        new Handler().post(new Runnable() {
+            @Override
+            public void run() {
+                if(isFavorite) {
+                    Uri uri = FavoriteMoviesContract.MovieEntry.buildMovieWithIdUri(mMovie.getId());
+                    getContentResolver().delete(uri, null, null);
+                } else {
+
+                    ContentValues movieContentValues = new ContentValues();
+                    //TODO how unique id is enforced? is duplicate id possible?
+                    movieContentValues.put(FavoriteMoviesContract.MovieEntry._ID, mMovie.getId());
+                    movieContentValues.put(FavoriteMoviesContract.MovieEntry.COLUMN_TITLE, mMovie.getTitle());
+                    movieContentValues.put(FavoriteMoviesContract.MovieEntry.COLUMN_OVERVIEW, mMovie.getOverview());
+                    movieContentValues.put(FavoriteMoviesContract.MovieEntry.COLUMN_RATING, mMovie.getRating());
+                    movieContentValues.put(FavoriteMoviesContract.MovieEntry.COLUMN_RELEASE, mMovie.getReleaseDate());
+                    movieContentValues.put(FavoriteMoviesContract.MovieEntry.COLUMN_POSTER, mMovie.getPoster());
+
+                    getContentResolver().insert(FavoriteMoviesContract.MovieEntry.CONTENT_URI, movieContentValues);
+                    //TODO Pull poster if internet connected
+                }
+            }
+        });
     }
 
-    private boolean isFavorite(int movieId) {
-        //TODO implement individual content id too
-        Cursor cursor = getContentResolver().query(FavoriteMoviesContract.MovieEntry.CONTENT_URI, MAIN_MOVIE_PROJECTION, null, null, null);
+    private boolean isFavorite(long movieId) {
+        Uri uri = FavoriteMoviesContract.MovieEntry.buildMovieWithIdUri(movieId);
+        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
         return (cursor != null && cursor.moveToFirst());
+    }
+
+    private void updateFavorite(boolean isFavorite) {
+        isMovieFavorite = isFavorite;
+        if(isFavorite) {
+            mBinding.ibFavorite.setBackgroundResource(R.drawable.star_yellow);
+        } else {
+            mBinding.ibFavorite.setBackgroundResource(R.drawable.star_white);
+        }
     }
 }

@@ -2,4 +2,6 @@
 <resources>
     <dimen name="start_margin">12dp</dimen>
     <dimen name="poster_width">185dp</dimen>
+    <dimen name="border_margin">8dp</dimen>
+    <dimen name="title_height">40dp</dimen>
 </resources>

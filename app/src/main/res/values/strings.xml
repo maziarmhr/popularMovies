@@ -7,6 +7,8 @@
     <string name="action_rating">Highest Rated</string>
     <string name="action_favorites">Favorite Movies</string>
     <string name="movie_release_date">Released: %1s</string>
-    <string name="movie_rating">Rating: %1.1f</string>
+    <string name="movie_rating">Rating: %1.1f/10</string>
     <string name="content_authority">com.example.android.popularmovies</string>
+    <string name="movie_trailers_header">Trailers:</string>
+    <string name="movie_reviews_header">Reviews:</string>
 </resources>
