@@ -56,7 +56,6 @@ public class DetailActivity extends AppCompatActivity {
                     if(args == null) {
                         return;
                     }
-                    //mBinding.pbLoadingIndicator.setVisibility(View.VISIBLE);
                     forceLoad();
                 }
 
@@ -88,10 +87,7 @@ public class DetailActivity extends AppCompatActivity {
         @Override
         public void onLoadFinished(Loader<List<Trailer>> loader, List<Trailer> data) {
             if (data != null) {
-                //showMovieDataView();
                 mTrailersAdapter.setTrailerData(data);
-            } else {
-                //showErrorMessage();
             }
         }
 
@@ -112,7 +108,6 @@ public class DetailActivity extends AppCompatActivity {
                     if(args == null) {
                         return;
                     }
-                    //mBinding.pbLoadingIndicator.setVisibility(View.VISIBLE);
                     forceLoad();
                 }
 
@@ -144,10 +139,7 @@ public class DetailActivity extends AppCompatActivity {
         @Override
         public void onLoadFinished(Loader<List<Review>> loader, List<Review> data) {
             if (data != null) {
-                //showMovieDataView();
                 mReviewsAdapter.setReviewData(data);
-            } else {
-                //showErrorMessage();
             }
         }
 
