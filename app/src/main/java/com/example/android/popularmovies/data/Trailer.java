@@ -8,8 +8,6 @@ public class Trailer {
 
     private String name;
     private String key;
-    private String site;
-    private String type;
 
     public Trailer(String name, String key) {
         this.name = name;

@@ -11,10 +11,10 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class MoviesDbHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "movies.db";
 
-    private static final int DATABaSE_VERSION = 1;
+    private static final int DATABASE_VERSION = 1;
 
     public MoviesDbHelper(Context context) {
-        super(context, DATABASE_NAME, null, DATABaSE_VERSION);
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     @Override

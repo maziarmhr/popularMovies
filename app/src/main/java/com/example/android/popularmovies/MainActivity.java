@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-//TODO save previousely selected search type
+
 public class MainActivity extends AppCompatActivity implements
         MoviesAdapter.MoviesAdapterOnClickHandler,
         LoaderManager.LoaderCallbacks<List<Movie>>{
@@ -75,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements
     private RecyclerView mRecyclerView;
 
     private MoviesAdapter mMoviesAdapter;
+    private int mMenuOptionSelected = R.id.action_popular;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,7 +94,16 @@ public class MainActivity extends AppCompatActivity implements
         mMoviesAdapter = new MoviesAdapter(this);
         mRecyclerView.setAdapter(mMoviesAdapter);
 
-        loadMoviesData(R.id.action_popular);
+        if (savedInstanceState != null) {
+            mMenuOptionSelected = savedInstanceState.getInt(SEARCH_MOVIES_CATEGORY_EXTRA);
+        }
+        loadMoviesData(mMenuOptionSelected);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(SEARCH_MOVIES_CATEGORY_EXTRA, mMenuOptionSelected);
     }
 
     @Override
@@ -106,7 +116,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void loadMoviesData(int sortOrder) {
-        if(isOnline()) {
+        if(isOnline() || sortOrder == R.id.action_favorites) {
             showMovieDataView();
             mMoviesAdapter.setMovieData(null);
             Bundle queryBundle = new Bundle();
@@ -161,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements
                                     new Date(cursor.getLong(INDEX_MOVIE_RELEASE)),
                                     cursor.getString(INDEX_MOVIE_POSTER)
                             );
-                            //TODO take care of poster retrieval for favorite
+
                             favoriteMovies.add(movie);
                         }
                         return favoriteMovies;
@@ -216,14 +226,14 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
+        mMenuOptionSelected = item.getItemId();
 
-        switch (id) {
+        switch (mMenuOptionSelected) {
             case R.id.action_popular:
             case R.id.action_rating:
             case R.id.action_favorites:
 
-                loadMoviesData(id);
+                loadMoviesData(mMenuOptionSelected);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

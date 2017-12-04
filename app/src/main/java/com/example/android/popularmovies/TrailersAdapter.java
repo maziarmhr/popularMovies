@@ -4,15 +4,14 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
-import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
 import com.example.android.popularmovies.data.Trailer;
 import com.example.android.popularmovies.databinding.TrailerListItemBinding;
+import com.example.android.popularmovies.utilities.NetworkUtils;
 
 import java.util.List;
 
@@ -22,19 +21,6 @@ import java.util.List;
 
 public class TrailersAdapter extends RecyclerView.Adapter<TrailersAdapter.TrailerViewHolder> {
     private List<Trailer> trailerList;
-
-    private final TrailersAdapterOnClickHandler mClickHandler;
-
-    TrailersAdapter(TrailersAdapterOnClickHandler clickHandler) {
-        mClickHandler = clickHandler;
-    }
-
-    /**
-     * The interface that receives onClick messages.
-     */
-    public interface TrailersAdapterOnClickHandler {
-        void onClick(Trailer trailer);
-    }
 
     @Override
     public TrailerViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -81,11 +67,11 @@ public class TrailersAdapter extends RecyclerView.Adapter<TrailersAdapter.Traile
         @Override
         public void onClick(View v) {
             int adapterPosition = getAdapterPosition();
-            //mClickHandler.onClick(trailerList.get(adapterPosition));
+
             Trailer trailer = trailerList.get(adapterPosition);
-            Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + trailer.getKey()));
+            Intent appIntent = new Intent(Intent.ACTION_VIEW, NetworkUtils.buildYoutubeAppUri(trailer.getKey()));
             Intent webIntent = new Intent(Intent.ACTION_VIEW,
-                    Uri.parse("http://www.youtube.com/watch?v=" + trailer.getKey()));
+                    NetworkUtils.buildYoutubeWebUri(trailer.getKey()));
             try {
                 mContext.startActivity(appIntent);
             } catch (ActivityNotFoundException ex) {

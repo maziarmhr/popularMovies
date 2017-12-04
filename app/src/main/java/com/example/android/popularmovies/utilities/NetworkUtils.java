@@ -15,7 +15,6 @@
  */
 package com.example.android.popularmovies.utilities;
 
-import android.content.Intent;
 import android.net.Uri;
 import com.example.android.popularmovies.BuildConfig;
 import android.util.Log;
@@ -38,6 +37,12 @@ public final class NetworkUtils {
             "https://api.themoviedb.org/3/movie";
     private static final String POSTER_BASE_URL =
             "http://image.tmdb.org/t/p/";
+    private static final String YOUTUBE_APP_BASE_URL =
+            "vnd.youtube";
+    private static final String YOUTUBE_WEB_BASE_URL =
+            "http://www.youtube.com";
+    private static final String YOUTUBE_WEB_PATH = "watch";
+    private static final String YOUTUBE_WEB_QUERY_PARAM = "v";
     public static final String POPULAR = "popular";
     public static final String TOP_RATED = "top_rated";
     public static final String TRAILERS_PATH = "videos";
@@ -70,9 +75,9 @@ public final class NetworkUtils {
         }
     }
 
-    private static final String api_key = BuildConfig.THE_MOVIE_DB_API_TOKEN;
+    private static final String API_KEY = BuildConfig.THE_MOVIE_DB_API_TOKEN;
 
-    private final static String API_KEY_PARAM = "api_key";
+    private static final String API_KEY_PARAM = "api_key";
 
     /**
      * Builds the URL used to talk to the movie server using a category.
@@ -83,14 +88,14 @@ public final class NetworkUtils {
     public static URL buildUrl(String category) {
         Uri builtUri = Uri.parse(MOVIES_BASE_URL).buildUpon()
                 .appendPath(category)
-                .appendQueryParameter(API_KEY_PARAM, api_key)
+                .appendQueryParameter(API_KEY_PARAM, API_KEY)
                 .build();
 
         URL url = null;
         try {
             url = new URL(builtUri.toString());
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            Log.d(TAG, e.toString());
         }
 
         Log.v(TAG, "Built URI " + url);
@@ -109,14 +114,14 @@ public final class NetworkUtils {
         Uri builtUri = Uri.parse(MOVIES_BASE_URL).buildUpon()
                 .appendPath(Long.toString(id))
                 .appendPath(itemType)
-                .appendQueryParameter(API_KEY_PARAM, api_key)
+                .appendQueryParameter(API_KEY_PARAM, API_KEY)
                 .build();
 
         URL url = null;
         try {
             url = new URL(builtUri.toString());
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            Log.d(TAG, e.toString());
         }
 
         Log.v(TAG, itemType + " Built URI" + url);
@@ -160,5 +165,17 @@ public final class NetworkUtils {
         } finally {
             urlConnection.disconnect();
         }
+    }
+
+    public static Uri buildYoutubeWebUri( String videoKey) {
+        return Uri.parse(YOUTUBE_WEB_BASE_URL)
+                .buildUpon()
+                .appendEncodedPath(YOUTUBE_WEB_PATH)
+                .appendQueryParameter(YOUTUBE_WEB_QUERY_PARAM, videoKey)
+                .build();
+    }
+
+    public static Uri buildYoutubeAppUri( String videoKey) {
+        return Uri.parse(YOUTUBE_APP_BASE_URL + ":" + videoKey);
     }
 }

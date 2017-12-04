@@ -29,6 +29,7 @@ import java.net.HttpURLConnection;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -72,9 +73,9 @@ public final class MovieDbJsonUtils {
                 case HttpURLConnection.HTTP_OK:
                     break;
                 case HttpURLConnection.HTTP_NOT_FOUND:
-                    return null;
+                    return Collections.emptyList();
                 default:
-                    return null;
+                    return Collections.emptyList();
             }
         }
 
@@ -89,7 +90,7 @@ public final class MovieDbJsonUtils {
                 String overview;
                 double rating;
                 Date releaseDate;
-                String poster_path;
+                String posterPath;
 
                 JSONObject movieObject = movieArray.getJSONObject(i);
 
@@ -100,9 +101,9 @@ public final class MovieDbJsonUtils {
                 String date = movieObject.getString(MDB_RELEASE_DATE);
                 DateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
                 releaseDate = format.parse(date);
-                poster_path = movieObject.getString(MDB_POSTER_PATH);
+                posterPath = movieObject.getString(MDB_POSTER_PATH);
                 Log.d("Maz", Long.toString(id));
-                parsedMovieList.add(new Movie(id, title, overview, rating, releaseDate, poster_path));
+                parsedMovieList.add(new Movie(id, title, overview, rating, releaseDate, posterPath));
             } catch(Exception e) {
                 Log.d(MovieDbJsonUtils.class.getSimpleName(), e.getMessage());
             }
@@ -123,15 +124,14 @@ public final class MovieDbJsonUtils {
      */
     public static List<Trailer> getTrailerFromJson(String trailerJsonStr)
             throws JSONException {
-
         final String MDB_LIST = "results";
 
-        final String MDB_ID = "id";
-        final String MDB_NAME = "name";
         final String MDB_KEY = "key";
+        final String MDB_TYPE = "type";
+        final String MDB_TRAILER_TYPE = "Trailer";
 
         final String MDB_MESSAGE_CODE = "status_code";
-
+        int trailerNumber = 1;
         JSONObject trailersJson = new JSONObject(trailerJsonStr);
 
         /* Is there an error? */
@@ -142,9 +142,9 @@ public final class MovieDbJsonUtils {
                 case HttpURLConnection.HTTP_OK:
                     break;
                 case HttpURLConnection.HTTP_NOT_FOUND:
-                    return null;
+                    return Collections.emptyList();
                 default:
-                    return null;
+                    return Collections.emptyList();
             }
         }
 
@@ -156,12 +156,16 @@ public final class MovieDbJsonUtils {
             try {
                 String name;
                 String key;
+                String type;
 
                 JSONObject trailerObject = trailersArray.getJSONObject(i);
 
-                name = trailerObject.getString(MDB_NAME);
-                key = trailerObject.getString(MDB_KEY);
-                parsedTrailerList.add(new Trailer( name, key));
+                type = trailerObject.getString(MDB_TYPE);
+                if(type.equals(MDB_TRAILER_TYPE)) {
+                    name = MDB_TRAILER_TYPE + " " + trailerNumber++;
+                    key = trailerObject.getString(MDB_KEY);
+                    parsedTrailerList.add(new Trailer(name, key));
+                }
             } catch(Exception e) {
                 Log.d(MovieDbJsonUtils.class.getSimpleName(), e.getMessage());
             }
@@ -185,7 +189,6 @@ public final class MovieDbJsonUtils {
 
         final String MDB_LIST = "results";
 
-        final String MDB_ID = "id";
         final String MDB_AUTHOR = "author";
         final String MDB_CONTENT = "content";
 
@@ -201,9 +204,9 @@ public final class MovieDbJsonUtils {
                 case HttpURLConnection.HTTP_OK:
                     break;
                 case HttpURLConnection.HTTP_NOT_FOUND:
-                    return null;
+                    return Collections.emptyList();
                 default:
-                    return null;
+                    return Collections.emptyList();
             }
         }
 

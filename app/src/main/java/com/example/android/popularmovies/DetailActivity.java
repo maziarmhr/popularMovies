@@ -13,6 +13,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 
 import com.example.android.popularmovies.data.FavoriteMoviesContract;
@@ -25,10 +26,12 @@ import com.example.android.popularmovies.utilities.NetworkUtils;
 import com.squareup.picasso.Picasso;
 
 import java.net.URL;
+import java.util.Collections;
 import java.util.List;
-//TODO Fix Trailer and review display
-//TODO Change color Theme
-public class DetailActivity extends AppCompatActivity implements TrailersAdapter.TrailersAdapterOnClickHandler{
+
+public class DetailActivity extends AppCompatActivity {
+
+    private static final String TAG = DetailActivity.class.getSimpleName();
 
     ActivityDetailBinding mBinding;
     TrailersAdapter mTrailersAdapter;
@@ -41,11 +44,6 @@ public class DetailActivity extends AppCompatActivity implements TrailersAdapter
 
     private static final String SEARCH_REQUEST_TYPE = "request_type";
     private static final String SEARCH_MOVIE_ID = "movie_id";
-
-    @Override
-    public void onClick(Trailer trailer) {
-
-    }
 
     public class TrailerLoaderListener implements LoaderManager.LoaderCallbacks<List<Trailer>> {
 
@@ -67,7 +65,7 @@ public class DetailActivity extends AppCompatActivity implements TrailersAdapter
                     String searchCategory = args.getString(SEARCH_REQUEST_TYPE);
                     long movieId = args.getLong(SEARCH_MOVIE_ID);
                     if (searchCategory == null || TextUtils.isEmpty(searchCategory)) {
-                        return null;
+                        return Collections.emptyList();
                     }
 
                     URL itemRequestUrl = NetworkUtils.buildMovieItemUrl(movieId, searchCategory);
@@ -80,8 +78,8 @@ public class DetailActivity extends AppCompatActivity implements TrailersAdapter
                                 .getTrailerFromJson(jsonMovieResponse);
 
                     } catch (Exception e) {
-                        e.printStackTrace();
-                        return null;
+                        Log.d(TAG, e.toString());
+                        return Collections.emptyList();
                     }
                 }
             };
@@ -123,7 +121,7 @@ public class DetailActivity extends AppCompatActivity implements TrailersAdapter
                     String searchCategory = args.getString(SEARCH_REQUEST_TYPE);
                     long movieId = args.getLong(SEARCH_MOVIE_ID);
                     if (searchCategory == null || TextUtils.isEmpty(searchCategory)) {
-                        return null;
+                        return Collections.emptyList();
                     }
 
                     URL itemRequestUrl = NetworkUtils.buildMovieItemUrl(movieId, searchCategory);
@@ -136,8 +134,8 @@ public class DetailActivity extends AppCompatActivity implements TrailersAdapter
                                 .getReviewsFromJson(jsonMovieResponse);
 
                     } catch (Exception e) {
-                        e.printStackTrace();
-                        return null;
+                        Log.d(TAG, e.toString());
+                        return Collections.emptyList();
                     }
                 }
             };
@@ -166,9 +164,7 @@ public class DetailActivity extends AppCompatActivity implements TrailersAdapter
 
         Intent intent = getIntent();
 
-        if (intent != null) {
-
-            if (intent.hasExtra("Movie")) {
+        if (intent != null && intent.hasExtra("Movie")) {
                 Bundle bundle = getIntent().getExtras();
                 mMovie = bundle.getParcelable("Movie");
                 new Handler().post(new Runnable() {
@@ -183,11 +179,11 @@ public class DetailActivity extends AppCompatActivity implements TrailersAdapter
                 mBinding.tvDetailOverview.setText(mMovie.getOverview());
                 mBinding.tvDetailRating.setText(String.format(getString(R.string.movie_rating), mMovie.getRating()));
                 mBinding.tvDetailRelease.setText(mMovie.getReleaseDate());
-                mTrailersAdapter = new TrailersAdapter(null);
+                mTrailersAdapter = new TrailersAdapter();
                 mBinding.rvTrailers.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
                 mBinding.rvTrailers.setAdapter(mTrailersAdapter);
 
-                mReviewsAdapter = new ReviewsAdapter(null);
+                mReviewsAdapter = new ReviewsAdapter();
                 mBinding.rvReviews.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
                 mBinding.rvReviews.setAdapter(mReviewsAdapter);
 
@@ -202,7 +198,7 @@ public class DetailActivity extends AppCompatActivity implements TrailersAdapter
                 reviewQueryBundle.putString(SEARCH_REQUEST_TYPE, NetworkUtils.REVIEWS_PATH);
                 reviewQueryBundle.putLong(SEARCH_MOVIE_ID, mMovie.getId());
                 loaderManager.restartLoader(REVIEWS_LOADER_ID, reviewQueryBundle, new ReviewLoaderListener());
-            }
+
         }
     }
 
@@ -218,7 +214,7 @@ public class DetailActivity extends AppCompatActivity implements TrailersAdapter
                 } else {
 
                     ContentValues movieContentValues = new ContentValues();
-                    //TODO how unique id is enforced? is duplicate id possible?
+
                     movieContentValues.put(FavoriteMoviesContract.MovieEntry._ID, mMovie.getId());
                     movieContentValues.put(FavoriteMoviesContract.MovieEntry.COLUMN_TITLE, mMovie.getTitle());
                     movieContentValues.put(FavoriteMoviesContract.MovieEntry.COLUMN_OVERVIEW, mMovie.getOverview());
@@ -227,7 +223,6 @@ public class DetailActivity extends AppCompatActivity implements TrailersAdapter
                     movieContentValues.put(FavoriteMoviesContract.MovieEntry.COLUMN_POSTER, mMovie.getPoster());
 
                     getContentResolver().insert(FavoriteMoviesContract.MovieEntry.CONTENT_URI, movieContentValues);
-                    //TODO Pull poster if internet connected
                 }
             }
         });

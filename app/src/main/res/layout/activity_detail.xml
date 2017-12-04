@@ -145,6 +145,7 @@
                 android:padding="@dimen/border_margin"
                 android:textStyle="bold"
                 style="@style/TextItemStyle"
+                android:textAlignment="center"
                 app:layout_constraintTop_toBottomOf="@+id/rv_trailers"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"/>
