@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.databinding.DataBindingUtil;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.Parcelable;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
@@ -26,6 +27,7 @@ import com.example.android.popularmovies.utilities.NetworkUtils;
 import com.squareup.picasso.Picasso;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -44,19 +46,27 @@ public class DetailActivity extends AppCompatActivity {
 
     private static final String SEARCH_REQUEST_TYPE = "request_type";
     private static final String SEARCH_MOVIE_ID = "movie_id";
+    private static final String TRAILERS_KEY = "trailers_key";
+    private static final String REVIEWS_KEY = "reviews_key";
 
     public class TrailerLoaderListener implements LoaderManager.LoaderCallbacks<List<Trailer>> {
 
         @Override
         public Loader<List<Trailer>> onCreateLoader(int id, final Bundle args) {
             return new AsyncTaskLoader<List<Trailer>>(DetailActivity.this) {
+                List<Trailer> cachedTrailers;
+
                 @Override
                 protected void onStartLoading() {
                     super.onStartLoading();
-                    if(args == null) {
-                        return;
+                    if (cachedTrailers != null) {
+                        deliverResult(cachedTrailers);
+                    } else {
+                        if (args == null) {
+                            return;
+                        }
+                        forceLoad();
                     }
-                    forceLoad();
                 }
 
                 @Override
@@ -81,6 +91,12 @@ public class DetailActivity extends AppCompatActivity {
                         return Collections.emptyList();
                     }
                 }
+
+                @Override
+                public void deliverResult(List<Trailer> data) {
+                    cachedTrailers = data;
+                    super.deliverResult(data);
+                }
             };
         }
 
@@ -102,13 +118,19 @@ public class DetailActivity extends AppCompatActivity {
         @Override
         public Loader<List<Review>> onCreateLoader(int id, final Bundle args) {
             return new AsyncTaskLoader<List<Review>>(DetailActivity.this) {
+                List<Review> cachedReviews;
+
                 @Override
                 protected void onStartLoading() {
                     super.onStartLoading();
-                    if(args == null) {
-                        return;
+                    if (cachedReviews != null) {
+                        deliverResult(cachedReviews);
+                    } else {
+                        if (args == null) {
+                            return;
+                        }
+                        forceLoad();
                     }
-                    forceLoad();
                 }
 
                 @Override
@@ -132,6 +154,12 @@ public class DetailActivity extends AppCompatActivity {
                         Log.d(TAG, e.toString());
                         return Collections.emptyList();
                     }
+                }
+
+                @Override
+                public void deliverResult(List<Review> data) {
+                    cachedReviews = data;
+                    super.deliverResult(data);
                 }
             };
         }
@@ -171,26 +199,34 @@ public class DetailActivity extends AppCompatActivity {
                 mBinding.tvDetailOverview.setText(mMovie.getOverview());
                 mBinding.tvDetailRating.setText(String.format(getString(R.string.movie_rating), mMovie.getRating()));
                 mBinding.tvDetailRelease.setText(mMovie.getReleaseDate());
-                mTrailersAdapter = new TrailersAdapter();
+
+                List<Trailer> trailers = null;
+                List<Review> reviews = null;
+                if(savedInstanceState != null) {
+                    trailers = savedInstanceState.getParcelableArrayList(TRAILERS_KEY);
+                    reviews = savedInstanceState.getParcelableArrayList(REVIEWS_KEY);
+                }
+                mTrailersAdapter = new TrailersAdapter(trailers);
                 mBinding.rvTrailers.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
                 mBinding.rvTrailers.setAdapter(mTrailersAdapter);
 
-                mReviewsAdapter = new ReviewsAdapter();
+                mReviewsAdapter = new ReviewsAdapter(reviews);
                 mBinding.rvReviews.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
                 mBinding.rvReviews.setAdapter(mReviewsAdapter);
 
-                Bundle trailerQueryBundle = new Bundle();
+                if(savedInstanceState == null) {
+                    Bundle trailerQueryBundle = new Bundle();
 
-                trailerQueryBundle.putString(SEARCH_REQUEST_TYPE, NetworkUtils.TRAILERS_PATH);
-                trailerQueryBundle.putLong(SEARCH_MOVIE_ID, mMovie.getId());
-                LoaderManager loaderManager = getSupportLoaderManager();
-                loaderManager.restartLoader(TRAILER_LOADER_ID, trailerQueryBundle, new TrailerLoaderListener());
+                    trailerQueryBundle.putString(SEARCH_REQUEST_TYPE, NetworkUtils.TRAILERS_PATH);
+                    trailerQueryBundle.putLong(SEARCH_MOVIE_ID, mMovie.getId());
+                    LoaderManager loaderManager = getSupportLoaderManager();
+                    loaderManager.restartLoader(TRAILER_LOADER_ID, trailerQueryBundle, new TrailerLoaderListener());
 
-                Bundle reviewQueryBundle = new Bundle();
-                reviewQueryBundle.putString(SEARCH_REQUEST_TYPE, NetworkUtils.REVIEWS_PATH);
-                reviewQueryBundle.putLong(SEARCH_MOVIE_ID, mMovie.getId());
-                loaderManager.restartLoader(REVIEWS_LOADER_ID, reviewQueryBundle, new ReviewLoaderListener());
-
+                    Bundle reviewQueryBundle = new Bundle();
+                    reviewQueryBundle.putString(SEARCH_REQUEST_TYPE, NetworkUtils.REVIEWS_PATH);
+                    reviewQueryBundle.putLong(SEARCH_MOVIE_ID, mMovie.getId());
+                    loaderManager.restartLoader(REVIEWS_LOADER_ID, reviewQueryBundle, new ReviewLoaderListener());
+                }
         }
     }
 
@@ -233,5 +269,11 @@ public class DetailActivity extends AppCompatActivity {
         } else {
             mBinding.ibFavorite.setBackgroundResource(R.drawable.star_white);
         }
+    }
+
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList(TRAILERS_KEY, (ArrayList<? extends Parcelable>) mTrailersAdapter.getTrailerList());
+        outState.putParcelableArrayList(REVIEWS_KEY, (ArrayList<? extends Parcelable>) mReviewsAdapter.getReviewList());
     }
 }

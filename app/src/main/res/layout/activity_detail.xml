@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <ScrollView
+    <android.support.v4.widget.NestedScrollView
+        android:id="@+id/sv_movie_detail"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/black">
@@ -161,5 +162,5 @@
                 android:layout_marginLeft="@dimen/border_margin"
                 android:layout_marginStart="@dimen/border_margin" />
         </android.support.constraint.ConstraintLayout>
-    </ScrollView>
+    </android.support.v4.widget.NestedScrollView>
 </layout>

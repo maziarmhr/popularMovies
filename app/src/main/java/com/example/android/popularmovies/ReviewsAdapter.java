@@ -16,7 +16,12 @@ import java.util.List;
  */
 
 public class ReviewsAdapter extends RecyclerView.Adapter<ReviewsAdapter.ReviewViewHolder> {
+
     private List<Review> reviewList;
+
+    public ReviewsAdapter(List<Review> reviews) {
+        reviewList = reviews;
+    }
 
     @Override
     public ReviewViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -32,6 +37,10 @@ public class ReviewsAdapter extends RecyclerView.Adapter<ReviewsAdapter.ReviewVi
 
             holder.bind(review);
         }
+    }
+
+    public List<Review> getReviewList() {
+        return reviewList;
     }
 
     @Override

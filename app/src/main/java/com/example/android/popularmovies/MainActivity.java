@@ -44,6 +44,9 @@ public class MainActivity extends AppCompatActivity implements
     private static final int MOVIES_LOADER_ID = 22;
 
     private static final String SEARCH_MOVIES_CATEGORY_EXTRA = "category";
+    private static final String RECYCLER_POSITION_KEY = "recycler_position";
+
+    private int mLastRecyclerViewPosition = 0;
 
     /*
      * The columns of data that we are interested in displaying within our MainActivity's list of
@@ -82,6 +85,7 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
+        mLastRecyclerViewPosition = 0;
         mRecyclerView = mBinding.rvMoviesList;
         if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
             mRecyclerView.setLayoutManager(new GridLayoutManager(MainActivity.this, PORTRAIT_MOVIE_LIST_COLUMNS));
@@ -96,6 +100,7 @@ public class MainActivity extends AppCompatActivity implements
 
         if (savedInstanceState != null) {
             mMenuOptionSelected = savedInstanceState.getInt(SEARCH_MOVIES_CATEGORY_EXTRA);
+            mLastRecyclerViewPosition = savedInstanceState.getInt(RECYCLER_POSITION_KEY);
         }
         loadMoviesData(mMenuOptionSelected);
     }
@@ -104,6 +109,7 @@ public class MainActivity extends AppCompatActivity implements
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(SEARCH_MOVIES_CATEGORY_EXTRA, mMenuOptionSelected);
+        outState.putInt(RECYCLER_POSITION_KEY, ((GridLayoutManager)mRecyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition());
     }
 
     @Override
@@ -142,14 +148,21 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public Loader<List<Movie>> onCreateLoader(int id, final Bundle args) {
         return new AsyncTaskLoader<List<Movie>>(this) {
+
+            List<Movie> cachedMovies;
+
             @Override
             protected void onStartLoading() {
                 super.onStartLoading();
-                if(args == null) {
-                    return;
+                if (cachedMovies != null) {
+                    deliverResult(cachedMovies);
+                } else {
+                    if (args == null) {
+                        return;
+                    }
+                    mBinding.pbLoadingIndicator.setVisibility(View.VISIBLE);
+                    forceLoad();
                 }
-                mBinding.pbLoadingIndicator.setVisibility(View.VISIBLE);
-                forceLoad();
             }
 
             @Override
@@ -198,6 +211,12 @@ public class MainActivity extends AppCompatActivity implements
                     return Collections.emptyList();
                 }
             }
+
+            @Override
+            public void deliverResult(List<Movie> data) {
+                cachedMovies = data;
+                super.deliverResult(data);
+            }
         };
     }
 
@@ -207,6 +226,9 @@ public class MainActivity extends AppCompatActivity implements
         if (data != null) {
             showMovieDataView();
             mMoviesAdapter.setMovieData(data);
+            if(mLastRecyclerViewPosition > 0 ) {
+                mRecyclerView.scrollToPosition(mLastRecyclerViewPosition);
+            }
         } else {
             showErrorMessage();
         }

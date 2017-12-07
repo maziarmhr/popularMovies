@@ -20,7 +20,16 @@ import java.util.List;
  */
 
 public class TrailersAdapter extends RecyclerView.Adapter<TrailersAdapter.TrailerViewHolder> {
+
     private List<Trailer> trailerList;
+
+    public TrailersAdapter(List<Trailer> trailers) {
+        trailerList = trailers;
+    }
+
+    public List<Trailer> getTrailerList() {
+        return trailerList;
+    }
 
     @Override
     public TrailerViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
